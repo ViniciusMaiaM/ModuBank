@@ -1,0 +1,38 @@
+server:
+  port: 8081
+spring:
+  application:
+    name: account-service
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/modubank}
+    username: ${DB_USER:modubank}
+    password: ${DB_PASSWORD:modubank}
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+    open-in-view: false
+  flyway:
+    enabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
+  packages-to-scan: com.modubank.account_service.interfaces.api
+  paths-to-match: /v1/**
+
+logging:
+  level:
+    root: INFO
+    org.springdoc: TRACE
+    org.springframework.web: DEBUG
+    org.springframework.context: DEBUG

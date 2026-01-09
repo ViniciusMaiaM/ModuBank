@@ -1,0 +1,108 @@
+plugins {
+    kotlin("jvm") version "2.2.21"
+    kotlin("plugin.spring") version "2.2.21"
+    kotlin("plugin.jpa") version "2.2.21"
+    kotlin("kapt") version "2.2.21"
+    id("org.springframework.boot") version "4.0.1"
+    id("io.spring.dependency-management") version "1.1.7"
+    id("org.jlleitschuh.gradle.ktlint") version "12.1.0"
+    id("io.gitlab.arturbosch.detekt") version "1.23.6"
+    id("com.diffplug.spotless") version "6.23.3"
+}
+
+group = "com.modubank"
+
+version = "0.0.1-SNAPSHOT"
+
+description = "MVP to the account service module of the modubank project"
+
+java { toolchain { languageVersion = JavaLanguageVersion.of(21) } }
+
+repositories { mavenCentral() }
+
+dependencyManagement {
+    imports { mavenBom("org.springframework.boot:spring-boot-dependencies:4.0.1") }
+}
+
+dependencies {
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+    implementation("org.springframework.boot:spring-boot-starter-flyway")
+    implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-validation")
+    implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.flywaydb:flyway-database-postgresql")
+    implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+    runtimeOnly("org.postgresql:postgresql")
+
+    // OpenAPI
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0")
+
+    // Config metadata (DX)
+    kapt("org.springframework.boot:spring-boot-configuration-processor")
+
+    // Testes
+    testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
+    testImplementation(platform("org.testcontainers:testcontainers-bom:1.19.7"))
+    testImplementation("org.testcontainers:junit-jupiter")
+    testImplementation("org.testcontainers:postgresql")
+    testImplementation("io.mockk:mockk:1.13.10")
+    testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+}
+
+kotlin { compilerOptions { freeCompilerArgs.add("-Xjsr305=strict") } }
+
+tasks.withType<Test> { useJUnitPlatform() }
+
+ktlint {
+    version.set("1.0.1")
+    android.set(false)
+    ignoreFailures.set(false)
+    reporters {
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.PLAIN)
+        reporter(org.jlleitschuh.gradle.ktlint.reporter.ReporterType.CHECKSTYLE)
+    }
+}
+
+// Configuração detekt
+detekt {
+    toolVersion = "1.23.6"
+    source.setFrom("src/main/kotlin", "src/test/kotlin")
+    parallel = true
+    buildUponDefaultConfig = true
+    allRules = false
+
+    reports {
+        html.required.set(true) // ⬅️ Usa nova API
+        xml.required.set(true)
+        txt.required.set(false)
+        sarif.required.set(false)
+    }
+}
+// Configuração spotless
+spotless {
+    kotlin {
+        target("**/*.kt")
+        targetExclude("**/build/**/*.kt")
+        ktfmt("0.46").kotlinlangStyle()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+    kotlinGradle {
+        target("*.gradle.kts")
+        ktfmt("0.46").kotlinlangStyle()
+    }
+}
+
+// Tasks customizadas para facilitar uso
+tasks.register("formatAll") {
+    dependsOn("ktlintFormat", "spotlessApply")
+    description = "Apply all code formatting"
+}
+
+tasks.register("checkAll") {
+    dependsOn("ktlintCheck", "detekt", "spotlessCheck")
+    description = "Run all code quality checks"
+}
