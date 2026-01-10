@@ -21,7 +21,7 @@
 
 ## 📖 Documentação
 - Swagger (local, quando os serviços estiverem rodando):
-    - account-service: http://localhost:8081/swagger-ui/index.html
+    - account: http://localhost:8081/swagger-ui/index.html
     - transaction-service: http://localhost:8082/swagger-ui/index.html
 - Diagramas e coleções (WIP): adicionar em DOCS/ (ERD, arquitetura, coleções de API).
 
@@ -29,7 +29,7 @@
 ModuBank é uma plataforma bancária modular (microserviços) para estudo de back-end, segurança e observabilidade. O foco é consistência financeira (ledger de dupla entrada), idempotência, testes e evolução para cloud.
 
 ## 🧭 Serviços e responsabilidades
-- account-service (Kotlin + Spring Boot)
+- account (Kotlin + Spring Boot)
     - Cadastro e consulta de contas (metadados).
     - Não calcula saldo real (delegado ao transaction-service).
 - transaction-service (Kotlin + Spring Boot)
@@ -50,7 +50,7 @@ ModuBank é uma plataforma bancária modular (microserviços) para estudo de bac
 ## 📂 Estrutura do repositório
 ```
 modubank/
-├── account-service/           # Kotlin + Spring Boot
+├── account/           # Kotlin + Spring Boot
 ├── transaction-service/       # Kotlin + Spring Boot
 ├── fraud-service/             # Go + Fiber
 ├── notification-service/      # Go + Fiber
@@ -64,7 +64,7 @@ modubank/
 1) Pré-requisitos: Java 21, Docker + Docker Compose, IDE (IntelliJ/VS Code)
 2) Infra local: `docker compose up -d` (Postgres; LocalStack WIP)
 3) Subir serviços:
-    - account-service: `cd account-service && ./gradlew bootRun`
+    - account: `cd account && ./gradlew bootRun`
 4) Swagger: http://localhost:8081/swagger-ui/index.html
 
 ## 🧪 Testes
@@ -77,7 +77,7 @@ modubank/
     - [x] Planejamento inicial
     - [ ] CI/CD (GitHub Actions)
     - [ ] Observabilidade (OpenTelemetry/Prometheus)
-- account-service
+- account
     - [x] Endpoints iniciais (criar/consultar conta)
     - [x] Flyway V1 (users, accounts)
     - [x] Exception handling (ProblemDetail)

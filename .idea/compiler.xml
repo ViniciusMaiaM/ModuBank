@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="account-service" target="21" />
+      <module name="account-service.main" target="21" />
+      <module name="account-service.test" target="21" />
+      <module name="com.modubank.account-service.main" target="21" />
+      <module name="com.modubank.account-service.test" target="21" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="account" options="-parameters -proc:none" />
+      <module name="account-service" options="-parameters -proc:none" />
+      <module name="account-service.main" options="-parameters -proc:none" />
+      <module name="account-service.test" options="-parameters -proc:none" />
+      <module name="account.main" options="-parameters -proc:none" />
+      <module name="account.test" options="-parameters -proc:none" />
+      <module name="com.modubank.account-service.main" options="-parameters -proc:none" />
+      <module name="com.modubank.account-service.test" options="-parameters -proc:none" />
+    </option>
+  </component>
+</project>
