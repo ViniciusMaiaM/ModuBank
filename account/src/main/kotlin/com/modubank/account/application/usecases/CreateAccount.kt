@@ -3,7 +3,7 @@ package com.modubank.account.application.usecases
 import com.modubank.account.application.repositories.AccountRepository
 import com.modubank.account.application.repositories.UserRepository
 import com.modubank.account.domain.Account
-import com.modubank.account.domain.DomainException
+import com.modubank.account.domain.exception.DomainException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID

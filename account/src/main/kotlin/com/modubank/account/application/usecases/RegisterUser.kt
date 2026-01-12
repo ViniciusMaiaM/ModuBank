@@ -4,10 +4,10 @@ import com.modubank.account.application.repositories.AccountRepository
 import com.modubank.account.application.repositories.UserRepository
 import com.modubank.account.domain.Account
 import com.modubank.account.domain.AccountType
-import com.modubank.account.domain.CpfAlreadyInUseException
-import com.modubank.account.domain.EmailAlreadyInUseException
-import com.modubank.account.domain.RequiredFieldMissingException
 import com.modubank.account.domain.User
+import com.modubank.account.domain.exception.CpfAlreadyInUseException
+import com.modubank.account.domain.exception.EmailAlreadyInUseException
+import com.modubank.account.domain.exception.RequiredFieldMissingException
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.bcrypt.BCrypt
 import org.springframework.stereotype.Service
@@ -49,6 +49,10 @@ class RegisterUser(
 
         if (userRepo.existsByCpf(cmd.cpf)) {
             throw CpfAlreadyInUseException()
+        }
+
+        if (cmd.currency.isBlank()) {
+            throw RequiredFieldMissingException("currency")
         }
 
         val passwordHash = BCrypt.hashpw(cmd.password, BCrypt.gensalt(10))

@@ -4,8 +4,8 @@ import com.modubank.account.application.repositories.AccountRepository
 import com.modubank.account.application.repositories.UserRepository
 import com.modubank.account.domain.Account
 import com.modubank.account.domain.AccountType
-import com.modubank.account.domain.DomainValidationException
 import com.modubank.account.domain.User
+import com.modubank.account.domain.exception.DomainException
 import io.mockk.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -128,7 +128,7 @@ class RegisterUserTest {
         every { userRepository.existsByEmail(cmd.email) } returns true
 
         val ex =
-            assertThrows(DomainValidationException::class.java) {
+            assertThrows(DomainException::class.java) {
                 useCase.execute(cmd)
             }
 

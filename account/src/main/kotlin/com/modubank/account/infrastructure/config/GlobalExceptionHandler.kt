@@ -1,7 +1,7 @@
 package com.modubank.account.infrastructure.config
 
 import com.modubank.account.application.usecases.RegisterUser
-import com.modubank.account.domain.DomainException
+import com.modubank.account.domain.exception.DomainException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
