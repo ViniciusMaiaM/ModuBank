@@ -15,7 +15,7 @@ import java.time.LocalDate
 @SpringBootTest
 @Import(IntegrationTestConfig::class)
 @Transactional
-class GetAccountIT{
+class GetAccountIT {
     @Autowired
     lateinit var registerUser: RegisterUser
 

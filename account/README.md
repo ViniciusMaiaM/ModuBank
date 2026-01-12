@@ -9,6 +9,7 @@
 </p>
 
 - [📖 Documentação](#-documentação)
+- [📐 Arquitetura](#-arquitetura)
 - [📑 Sobre](#-sobre)
 - [🧭 Responsabilidades](#-responsabilidades)
 - [🔌 Endpoints](#-endpoints)
@@ -22,6 +23,13 @@
 ## 📖 Documentação
 - Swagger UI: http://localhost:8081/swagger-ui/index.html
 - OpenAPI JSON: http://localhost:8081/v3/api-docs
+
+
+## 📐 Arquitetura
+- [ER Diagram](docs/erd.md)
+- [Use Cases](docs/usecases.md)
+- [Diagrama de sequência](docs/sequence.md)
+- [Componentes](docs/components.md)
 
 ## 📑 Sobre
 Serviço responsável por cadastro e consulta de contas. Segue Clean Architecture (domain, application, interfaces, infrastructure).

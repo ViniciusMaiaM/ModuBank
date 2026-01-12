@@ -10,7 +10,7 @@ import java.util.*
 class GetAccount(
     private val repository: AccountRepository,
 ) {
-    private val log = LoggerFactory.getLogger(RegisterUser::class.java)
+    private val log = LoggerFactory.getLogger(GetAccount::class.java)
 
     fun byId(id: UUID): Optional<Account> {
         log.info("Fetching account by id={}", id)

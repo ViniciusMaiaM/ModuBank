@@ -4,6 +4,9 @@ import com.modubank.account.application.repositories.AccountRepository
 import com.modubank.account.application.repositories.UserRepository
 import com.modubank.account.domain.Account
 import com.modubank.account.domain.AccountType
+import com.modubank.account.domain.CpfAlreadyInUseException
+import com.modubank.account.domain.EmailAlreadyInUseException
+import com.modubank.account.domain.RequiredFieldMissingException
 import com.modubank.account.domain.User
 import org.slf4j.LoggerFactory
 import org.springframework.security.crypto.bcrypt.BCrypt
@@ -38,20 +41,14 @@ class RegisterUser(
     private val log = LoggerFactory.getLogger(RegisterUser::class.java)
 
     fun execute(cmd: RegisterUserCommand): Pair<User, Account> {
-        log.info(
-            "Starting user registration email={}, cpf={}",
-            cmd.email,
-            cmd.cpf,
-        )
+        validateRequiredFields(cmd)
 
         if (userRepo.existsByEmail(cmd.email)) {
-            log.warn("Email already in use email={}", maskEmail(cmd.email))
-            throw IllegalArgumentException("email_already_in_use")
+            throw EmailAlreadyInUseException()
         }
 
         if (userRepo.existsByCpf(cmd.cpf)) {
-            log.warn("CPF already in use cpf={}", cmd.cpf)
-            throw IllegalArgumentException("cpf_already_in_use")
+            throw CpfAlreadyInUseException()
         }
 
         val passwordHash = BCrypt.hashpw(cmd.password, BCrypt.gensalt(10))
@@ -76,43 +73,34 @@ class RegisterUser(
                 ),
             )
 
-        log.info("User created successfully userId={}", user.id)
-
-        val accountNumber = generateAccountNumber(user.id)
-
         val account =
             accountRepo.save(
                 Account(
                     userId = user.id,
                     currency = cmd.currency,
-                    accountNumber = accountNumber,
+                    accountNumber = generateAccountNumber(user.id),
                     branchCode = "0001",
                     type = cmd.accountType,
                 ),
             )
 
-        log.info(
-            "Account created for user userId={}, accountId={}",
-            user.id,
-            account.id,
-        )
+        log.info("User and account created userId={}, accountId={}", user.id, account.id)
 
         return user to account
     }
 
-    private fun maskEmail(email: String): String {
-        val atIndex = email.indexOf("@")
-        return if (atIndex > 1) {
-            "***" + email.substring(atIndex)
-        } else {
-            "***"
-        }
+    private fun validateRequiredFields(cmd: RegisterUserCommand) {
+        listOf(
+            cmd.email to "email",
+            cmd.password to "password",
+            cmd.cpf to "cpf",
+        ).firstOrNull { it.first.isBlank() }
+            ?.let { throw RequiredFieldMissingException(it.second) }
     }
 
     private fun generateAccountNumber(seed: UUID): String {
         val digits = seed.toString().replace("-", "").takeLast(12)
-        val base = digits.ifEmpty { (100000000000..999999999999).random().toString() }
-        val checksum = base.map { it.code }.sum() % 9
-        return "$base-$checksum"
+        val checksum = digits.sumOf { it.code } % 9
+        return "$digits-$checksum"
     }
 }

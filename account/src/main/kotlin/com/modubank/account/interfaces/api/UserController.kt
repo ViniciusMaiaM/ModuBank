@@ -1,7 +1,7 @@
 package com.modubank.account.interfaces.api
 
-import com.modubank.account.application.repositories.AccountRepository
-import com.modubank.account.application.repositories.UserRepository
+import com.modubank.account.application.usecases.GetUser
+import com.modubank.account.application.usecases.GetUserAccounts
 import com.modubank.account.application.usecases.RegisterUser
 import com.modubank.account.application.usecases.RegisterUserCommand
 import com.modubank.account.interfaces.api.dto.*
@@ -16,10 +16,10 @@ import java.util.*
 @Validated
 class UserController(
     private val registerUser: RegisterUser,
-    private val userRepo: UserRepository,
-    private val accountRepo: AccountRepository,
+    private val getUser: GetUser,
+    private val getUserAccounts: GetUserAccounts,
 ) {
-    private val log = LoggerFactory.getLogger(RegisterUser::class.java)
+    private val log = LoggerFactory.getLogger(UserController::class.java)
 
     @PostMapping
     fun register(
@@ -49,12 +49,6 @@ class UserController(
                 ),
             )
 
-        log.info(
-            "User registration completed userId={}, accountId={}",
-            user.id,
-            account.id,
-        )
-
         return ResponseEntity.ok(
             RegisterUserResponse(
                 user = user.toResponse(),
@@ -67,27 +61,15 @@ class UserController(
     fun getUser(
         @PathVariable id: UUID,
     ): ResponseEntity<UserResponse> {
-        log.info("Fetching user id={}", id)
-
-        return userRepo
-            .findById(id)
-            .map {
-                log.info("User found id={}", id)
-                ResponseEntity.ok(it.toResponse())
-            }
-            .orElseGet {
-                log.warn("User not found id={}", id)
-                ResponseEntity.notFound().build()
-            }
+        val user = getUser.byId(id)
+        return ResponseEntity.ok(user.toResponse())
     }
 
     @GetMapping("{id}/accounts")
     fun getUserAccounts(
         @PathVariable id: UUID,
     ): ResponseEntity<List<AccountSummaryResponse>> {
-        log.info("Fetching accounts for user id={}", id)
-        return ResponseEntity.ok(
-            accountRepo.findByUserId(id).map { it.toSummary() },
-        )
+        val accounts = getUserAccounts.byUserId(id)
+        return ResponseEntity.ok(accounts.map { it.toSummary() })
     }
 }

@@ -1,6 +1,7 @@
 package com.modubank.account.infrastructure.config
 
 import com.modubank.account.application.usecases.RegisterUser
+import com.modubank.account.domain.DomainException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
@@ -59,25 +60,6 @@ class GlobalExceptionHandler {
         return ResponseEntity.badRequest().body(problem)
     }
 
-    @ExceptionHandler(NoSuchElementException::class)
-    fun handleNotFound(
-        ex: NoSuchElementException,
-        request: HttpServletRequest,
-    ): ResponseEntity<ProblemDetail> {
-        log.info(
-            "Resource not found path={}, message={}",
-            request.requestURI,
-            ex.message,
-        )
-
-        val problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND)
-        problem.title = "Resource not found"
-        problem.detail = ex.message ?: "Resource not found"
-        enrich(problem, request)
-
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
-    }
-
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun handleDataIntegrityViolation(
         ex: DataIntegrityViolationException,
@@ -95,25 +77,6 @@ class GlobalExceptionHandler {
         enrich(problem, request)
 
         return ResponseEntity.status(HttpStatus.CONFLICT).body(problem)
-    }
-
-    @ExceptionHandler(IllegalArgumentException::class)
-    fun handleIllegalArgument(
-        ex: IllegalArgumentException,
-        request: HttpServletRequest,
-    ): ResponseEntity<ProblemDetail> {
-        log.warn(
-            "Business validation error path={}, message={}",
-            request.requestURI,
-            ex.message,
-        )
-
-        val problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST)
-        problem.title = "Business validation error"
-        problem.detail = ex.message
-        enrich(problem, request)
-
-        return ResponseEntity.badRequest().body(problem)
     }
 
     @ExceptionHandler(Exception::class)
@@ -142,5 +105,25 @@ class GlobalExceptionHandler {
         problem.setProperty("timestamp", OffsetDateTime.now())
         problem.setProperty("correlationId", request.getHeader("X-Correlation-Id"))
         problem.setProperty("path", request.requestURI)
+    }
+
+    @ExceptionHandler(DomainException::class)
+    fun handleDomainException(
+        ex: DomainException,
+        request: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn(
+            "Domain error path={}, code={}",
+            request.requestURI,
+            ex.code,
+        )
+
+        val problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST)
+        problem.title = "Domain validation error"
+        problem.detail = ex.code
+
+        enrich(problem, request)
+
+        return ResponseEntity.badRequest().body(problem)
     }
 }
