@@ -67,11 +67,16 @@ class UserController(
     fun getUser(
         @PathVariable id: UUID,
     ): ResponseEntity<UserResponse> {
-        val user = getUser.byId(id)
-        if (user == null) {
+        val startTime = System.nanoTime()
+        
+        try {
+            val user = getUser.byId(id)
+            metrics.recordUserLookupTime(System.nanoTime() - startTime)
+            return ResponseEntity.ok(user.toResponse())
+        } catch (e: NoSuchElementException) {
             metrics.incrementUserNotFound()
+            throw e
         }
-        return ResponseEntity.ok(user.toResponse())
     }
 
     @GetMapping("{id}/accounts")

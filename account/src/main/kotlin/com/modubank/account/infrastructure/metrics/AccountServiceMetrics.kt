@@ -14,6 +14,11 @@ class AccountServiceMetrics(
             .description("Time taken to register a new user")
             .register(meterRegistry)
 
+    private val userLookupTimer =
+        Timer.builder("account.user.lookup.time")
+            .description("Time taken to lookup a user by ID")
+            .register(meterRegistry)
+
     private val accountCreationTimer =
         Timer.builder("account.creation.time")
             .description("Time taken to create an account")
@@ -41,6 +46,10 @@ class AccountServiceMetrics(
 
     fun recordUserRegistrationTime(timeNanos: Long) {
         userRegistrationTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
+    }
+
+    fun recordUserLookupTime(timeNanos: Long) {
+        userLookupTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
     }
 
     fun recordAccountCreationTime(timeNanos: Long) {
