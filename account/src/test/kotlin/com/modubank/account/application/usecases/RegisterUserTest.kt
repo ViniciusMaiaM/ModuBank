@@ -5,7 +5,8 @@ import com.modubank.account.application.repositories.UserRepository
 import com.modubank.account.domain.Account
 import com.modubank.account.domain.AccountType
 import com.modubank.account.domain.User
-import com.modubank.account.domain.exception.DomainException
+import com.modubank.account.domain.exception.CpfAlreadyInUseException
+import com.modubank.account.domain.exception.EmailAlreadyInUseException
 import io.mockk.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -16,7 +17,6 @@ class RegisterUserTest {
     private lateinit var registerUser: RegisterUser
     private val userRepository = mockk<UserRepository>()
     private val accountRepository = mockk<AccountRepository>()
-    private lateinit var useCase: RegisterUser
 
     @BeforeEach
     fun setup() {
@@ -51,7 +51,7 @@ class RegisterUserTest {
         every { userRepository.save(any<User>()) } answers { firstArg() }
         every { accountRepository.save(any<Account>()) } answers { firstArg() }
 
-        val (user, account) = useCase.execute(cmd)
+        val (user, account) = registerUser.execute(cmd)
 
         assertEquals(cmd.email, user.email)
         assertEquals(user.id, account.userId)
@@ -66,14 +66,14 @@ class RegisterUserTest {
         every { userRepository.existsByEmail(any()) } returns true
 
         val exception =
-            assertThrows(IllegalArgumentException::class.java) {
+            assertThrows(EmailAlreadyInUseException::class.java) {
                 registerUser.execute(
                     RegisterUserCommand(
                         firstName = "A",
                         lastName = "B",
                         email = "test@test.com",
                         password = "123",
-                        cpf = "123",
+                        cpf = "12345678901",
                         birthDate = LocalDate.now(),
                         phone = "9",
                         street = "Rua",
@@ -96,14 +96,14 @@ class RegisterUserTest {
         every { userRepository.existsByCpf(any()) } returns true
 
         val exception =
-            assertThrows(IllegalArgumentException::class.java) {
+            assertThrows(CpfAlreadyInUseException::class.java) {
                 registerUser.execute(
                     RegisterUserCommand(
                         firstName = "A",
                         lastName = "B",
                         email = "test@test.com",
                         password = "123",
-                        cpf = "123",
+                        cpf = "12345678901",
                         birthDate = LocalDate.now(),
                         phone = "9",
                         street = "Rua",
@@ -118,20 +118,5 @@ class RegisterUserTest {
             }
 
         assertEquals("cpf_already_in_use", exception.message)
-    }
-
-    @Test
-    fun `should throw exception when email already exists`() {
-        val cmd = mockk<RegisterUserCommand>()
-
-        every { cmd.email } returns "email@test.com"
-        every { userRepository.existsByEmail(cmd.email) } returns true
-
-        val ex =
-            assertThrows(DomainException::class.java) {
-                useCase.execute(cmd)
-            }
-
-        assertEquals("email_already_exists", ex.code)
     }
 }
