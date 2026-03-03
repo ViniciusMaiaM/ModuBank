@@ -90,7 +90,7 @@ class RegisterUser(
 
         log.info("User and account created userId={}, accountId={}", user.id, account.id)
 
-        return user to account
+        return Pair(user, account)
     }
 
     private fun validateRequiredFields(cmd: RegisterUserCommand) {
