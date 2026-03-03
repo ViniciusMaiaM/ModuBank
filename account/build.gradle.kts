@@ -7,6 +7,7 @@ plugins {
     id("org.springframework.boot") version "3.3.7"
     id("io.spring.dependency-management") version "1.1.7"
     id("org.jlleitschuh.gradle.ktlint") version "12.0.3"
+    id("com.github.ben-manes.versions") version "0.51.0"
 }
 
 
@@ -31,6 +32,16 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
+
+    // Observabilidade
+    implementation("io.micrometer:micrometer-registry-prometheus")
+    implementation("io.opentelemetry:opentelemetry-api")
+    implementation("io.opentelemetry:opentelemetry-sdk")
+
+    // Security - Override vulnerable dependencies
+    implementation("org.apache.commons:commons-compress:1.26.1")
+    implementation("org.apache.commons:commons-lang3:3.15.0")
+
 	runtimeOnly("org.postgresql:postgresql")
 	// Config metadata (DX)
 	kapt("org.springframework.boot:spring-boot-configuration-processor")
@@ -38,7 +49,7 @@ dependencies {
 	// Testes
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 	testImplementation("org.springframework.security:spring-security-test")
-	testImplementation(platform("org.testcontainers:testcontainers-bom:1.19.7"))
+	testImplementation(platform("org.testcontainers:testcontainers-bom:1.20.1"))
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:postgresql")
 	testImplementation("io.mockk:mockk:1.13.10")

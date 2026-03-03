@@ -4,6 +4,7 @@ import com.modubank.account.application.usecases.GetUser
 import com.modubank.account.application.usecases.GetUserAccounts
 import com.modubank.account.application.usecases.RegisterUser
 import com.modubank.account.application.usecases.RegisterUserCommand
+import com.modubank.account.infrastructure.metrics.AccountServiceMetrics
 import com.modubank.account.interfaces.api.dto.*
 import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
@@ -18,6 +19,7 @@ class UserController(
     private val registerUser: RegisterUser,
     private val getUser: GetUser,
     private val getUserAccounts: GetUserAccounts,
+    private val metrics: AccountServiceMetrics,
 ) {
     private val log = LoggerFactory.getLogger(UserController::class.java)
 
@@ -26,6 +28,7 @@ class UserController(
         @RequestBody req: RegisterUserRequest,
     ): ResponseEntity<RegisterUserResponse> {
         log.info("Received register user request email={}", req.email)
+        val startTime = System.nanoTime()
 
         val (user, account) =
             registerUser.execute(
@@ -49,6 +52,9 @@ class UserController(
                 ),
             )
 
+        metrics.recordUserRegistrationTime(System.nanoTime() - startTime)
+        metrics.incrementUserRegistration()
+
         return ResponseEntity.ok(
             RegisterUserResponse(
                 user = user.toResponse(),
@@ -62,6 +68,9 @@ class UserController(
         @PathVariable id: UUID,
     ): ResponseEntity<UserResponse> {
         val user = getUser.byId(id)
+        if (user == null) {
+            metrics.incrementUserNotFound()
+        }
         return ResponseEntity.ok(user.toResponse())
     }
 

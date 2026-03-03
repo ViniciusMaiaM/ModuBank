@@ -1,22 +1,62 @@
 <configuration>
+    <property name="SERVICE_NAME" value="account"/>
 
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
             <pattern>
                 {
                 "timestamp":"%d{ISO8601}",
                 "level":"%level",
-                "service":"account",
-                "requestId":"%X{requestId}",
-                "logger":"%logger",
-                "message":"%msg"
+                "service":"${SERVICE_NAME}",
+                "correlationId":"%X{requestId}",
+                "thread":"%thread",
+                "logger":"%logger{36}",
+                "message":"%msg",
+                "stacktrace":"%exception{10}"
                 }%n
             </pattern>
         </encoder>
     </appender>
 
-    <root level="INFO">
-        <appender-ref ref="STDOUT"/>
-    </root>
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>logs/application.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>logs/application.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>10MB</maxFileSize>
+            <maxHistory>30</maxHistory>
+            <totalSizeCap>1GB</totalSizeCap>
+        </rollingPolicy>
+        <encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+            <pattern>
+                {
+                "timestamp":"%d{ISO8601}",
+                "level":"%level",
+                "service":"${SERVICE_NAME}",
+                "correlationId":"%X{requestId}",
+                "thread":"%thread",
+                "logger":"%logger{36}",
+                "message":"%msg",
+                "stacktrace":"%exception{10}"
+                }%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <springProfile name="!test">
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+            <appender-ref ref="FILE"/>
+        </root>
+    </springProfile>
+
+    <springProfile name="test">
+        <root level="INFO">
+            <appender-ref ref="STDOUT"/>
+        </root>
+    </springProfile>
+
+    <logger name="com.modubank.account" level="DEBUG"/>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
 
 </configuration>

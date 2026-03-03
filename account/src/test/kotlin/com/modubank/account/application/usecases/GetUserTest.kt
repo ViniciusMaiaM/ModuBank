@@ -3,6 +3,8 @@ package com.modubank.account.application.usecases
 import com.modubank.account.application.repositories.AccountRepository
 import com.modubank.account.application.repositories.UserRepository
 import com.modubank.account.domain.User
+import com.modubank.account.domain.exception.DomainException
+import com.modubank.account.infrastructure.config.AccountConfig
 import io.mockk.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -18,7 +20,9 @@ class GetUserTest {
     fun setup() {
         userRepository = mockk()
         accountRepository = mockk()
-        createAccount = CreateAccount(accountRepository, userRepository)
+        val accountConfig = AccountConfig()
+        accountConfig.branchCode = "0001"
+        createAccount = CreateAccount(accountRepository, userRepository, accountConfig)
     }
 
     @Test
@@ -46,8 +50,11 @@ class GetUserTest {
         val userId = UUID.randomUUID()
         every { userRepository.findById(userId) } returns Optional.empty()
 
-        assertThrows(IllegalArgumentException::class.java) {
-            createAccount.execute(CreateAccountCommand(userId, "BRL"))
-        }
+        val exception =
+            assertThrows(DomainException::class.java) {
+                createAccount.execute(CreateAccountCommand(userId, "BRL"))
+            }
+
+        assertEquals("user_not_found", exception.code)
     }
 }

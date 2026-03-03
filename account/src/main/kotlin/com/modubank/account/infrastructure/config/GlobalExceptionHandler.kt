@@ -2,6 +2,7 @@ package com.modubank.account.infrastructure.config
 
 import com.modubank.account.application.usecases.RegisterUser
 import com.modubank.account.domain.exception.DomainException
+import com.modubank.account.domain.exception.RequiredFieldMissingException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
@@ -122,6 +123,26 @@ class GlobalExceptionHandler {
         problem.title = "Domain validation error"
         problem.detail = ex.code
         ex.details?.let { problem.setProperty("details", it) }
+
+        enrich(problem, request)
+
+        return ResponseEntity.badRequest().body(problem)
+    }
+
+    @ExceptionHandler(RequiredFieldMissingException::class)
+    fun handleRequiredFieldMissing(
+        ex: RequiredFieldMissingException,
+        request: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn(
+            "Required field missing path={}, message={}",
+            request.requestURI,
+            ex.message,
+        )
+
+        val problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST)
+        problem.title = "Required field missing"
+        problem.detail = ex.message
 
         enrich(problem, request)
 

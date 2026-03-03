@@ -2,6 +2,7 @@ package com.modubank.account.interfaces.api
 
 import com.modubank.account.application.usecases.CreateAccount
 import com.modubank.account.application.usecases.GetAccount
+import com.modubank.account.infrastructure.metrics.AccountServiceMetrics
 import com.modubank.account.interfaces.api.dto.*
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpStatus
@@ -16,6 +17,7 @@ import java.util.UUID
 class AccountController(
     private val createAccount: CreateAccount,
     private val getAccount: GetAccount,
+    private val metrics: AccountServiceMetrics,
 ) {
     private val log = LoggerFactory.getLogger(AccountController::class.java)
 
@@ -33,6 +35,7 @@ class AccountController(
             }
             .orElseGet {
                 log.warn("Account not found accountId={}", id)
+                metrics.incrementAccountNotFound()
                 ResponseEntity.notFound().build()
             }
     }
