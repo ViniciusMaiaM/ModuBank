@@ -39,12 +39,19 @@ jobs:
       - name: Build with Gradle
         run: cd account && ./gradlew build -x test --no-daemon
 
-      - name: Wait for PostgreSQL to be ready
-        uses: nick Fields/retry@v4
-        with:
-          timeout_seconds: 60
-          max_attempts: 10
-          command: PGPASSWORD=modubank pg_isready -h localhost -p 5432 -U modubank
+      - name: Wait for PostgreSQL
+        run: |
+          echo "Waiting for PostgreSQL..."
+          for i in {1..30}; do
+            if pg_isready -h localhost -p 5432 -U modubank -q; then
+              echo "PostgreSQL is ready!"
+              exit 0
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+          echo "PostgreSQL not ready after 60 seconds"
+          exit 1
 
       - name: Run tests
         run: cd account && ./gradlew test -DDB_URL=jdbc:postgresql://localhost:5432/modubank_test -DDB_USER=modubank -DDB_PASSWORD=modubank --no-daemon
