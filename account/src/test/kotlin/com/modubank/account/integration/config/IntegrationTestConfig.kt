@@ -10,16 +10,23 @@ class IntegrationTestConfig {
         @JvmStatic
         @DynamicPropertySource
         fun registerProperties(registry: DynamicPropertyRegistry) {
-            val dbUrl = System.getProperty("DB_URL") ?: "jdbc:postgresql://localhost:5432/modubank_test"
-            val dbUser = System.getProperty("DB_USER") ?: "modubank"
-            val dbPassword = System.getProperty("DB_PASSWORD") ?: "modubank"
+            // Para testes de integração, usa PostgreSQL se disponível, senão H2
+            val dbUrl = System.getProperty("DB_URL") ?: "jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE"
+            val dbUser = System.getProperty("DB_USER") ?: "sa"
+            val dbPassword = System.getProperty("DB_PASSWORD") ?: ""
 
             registry.add("spring.datasource.url") { dbUrl }
             registry.add("spring.datasource.username") { dbUser }
             registry.add("spring.datasource.password") { dbPassword }
 
-            registry.add("spring.jpa.hibernate.ddl-auto") { "validate" }
-            registry.add("spring.flyway.enabled") { true }
+            // Ajusta configurações baseadas no tipo de banco
+            if (dbUrl.contains("postgresql")) {
+                registry.add("spring.jpa.hibernate.ddl-auto") { "validate" }
+                registry.add("spring.flyway.enabled") { true }
+            } else {
+                registry.add("spring.jpa.hibernate.ddl-auto") { "create-drop" }
+                registry.add("spring.flyway.enabled") { false }
+            }
         }
     }
 }
