@@ -159,10 +159,12 @@ DB_URL=jdbc:postgresql://localhost:5432/modubank
 DB_USER=modubank
 DB_PASSWORD=modubank
 DB_NAME=modubank
+DB_PORT=5432
 
 # Application Configuration
+ACCOUNT_PORT=8081
 SPRING_PROFILES_ACTIVE=development
-LOG_LEVEL=DEBUG
+LOG_LEVEL=INFO
 ```
 
 ## 🧪 Testing
