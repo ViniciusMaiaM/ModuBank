@@ -2,9 +2,10 @@ package com.modubank.account.application.usecases
 
 import com.modubank.account.application.repositories.UserRepository
 import com.modubank.account.domain.User
+import com.modubank.account.domain.exception.UserNotFoundException
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.util.*
+import java.util.UUID
 
 @Service
 class GetUser(
@@ -18,7 +19,7 @@ class GetUser(
         return userRepository.findById(id)
             .orElseThrow {
                 log.warn("User not found id={}", id)
-                NoSuchElementException("user_not_found")
+                UserNotFoundException(id)
             }
     }
 }

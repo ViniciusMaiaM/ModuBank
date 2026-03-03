@@ -48,6 +48,8 @@ dependencies {
 
 	// Testes
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
+	testImplementation("org.springframework.boot:spring-boot-starter-data-jpa")
+	testImplementation("com.h2database:h2")
 	testImplementation("org.springframework.security:spring-security-test")
 	testImplementation(platform("org.testcontainers:testcontainers-bom:1.20.1"))
 	testImplementation("org.testcontainers:junit-jupiter")

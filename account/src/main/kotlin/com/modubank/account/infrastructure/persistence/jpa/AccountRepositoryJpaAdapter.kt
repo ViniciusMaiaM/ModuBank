@@ -30,6 +30,7 @@ class AccountRepositoryJpaAdapter(private val jpa: SpringDataAccountRepository) 
                         AccountType.SAVINGS -> AccountEntity.AccountType.SAVINGS
                     },
                 createdAt = account.createdAt,
+                updatedAt = account.updatedAt,
             )
         jpa.save(e)
         return account
@@ -38,6 +39,11 @@ class AccountRepositoryJpaAdapter(private val jpa: SpringDataAccountRepository) 
     override fun findById(id: UUID): Optional<Account> = jpa.findById(id).map { toDomain(it) }
 
     override fun findByUserId(userId: UUID): List<Account> = jpa.findByUserId(userId).map { toDomain(it) }
+
+    override fun delete(account: Account) {
+        val entity = jpa.findById(account.id).orElseThrow()
+        jpa.delete(entity)
+    }
 
     private fun toDomain(e: AccountEntity) =
         Account(
@@ -58,5 +64,6 @@ class AccountRepositoryJpaAdapter(private val jpa: SpringDataAccountRepository) 
                     AccountEntity.AccountType.SAVINGS -> AccountType.SAVINGS
                 },
             createdAt = e.createdAt!!,
+            updatedAt = e.updatedAt!!,
         )
 }

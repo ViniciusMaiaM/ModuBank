@@ -10,4 +10,6 @@ interface AccountRepository {
     fun findById(id: UUID): Optional<Account>
 
     fun findByUserId(userId: UUID): List<Account>
+
+    fun delete(account: Account)
 }

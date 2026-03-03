@@ -16,6 +16,7 @@ class AccountEntity(
     @Column(name = "branch_code", nullable = false, length = 10) var branchCode: String? = "0001",
     @Column(nullable = false) @Enumerated(EnumType.STRING) var type: AccountType? = null,
     @Column(name = "created_at", nullable = false) var createdAt: OffsetDateTime? = null,
+    @Column(name = "updated_at", nullable = false) var updatedAt: OffsetDateTime? = null,
 ) {
     enum class AccountStatus {
         ACTIVE,

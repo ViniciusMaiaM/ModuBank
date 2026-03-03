@@ -23,4 +23,5 @@ data class Account(
     val branchCode: String = "0001",
     val type: AccountType = AccountType.CHECKING,
     val createdAt: OffsetDateTime = OffsetDateTime.now(),
+    val updatedAt: OffsetDateTime = OffsetDateTime.now(),
 )

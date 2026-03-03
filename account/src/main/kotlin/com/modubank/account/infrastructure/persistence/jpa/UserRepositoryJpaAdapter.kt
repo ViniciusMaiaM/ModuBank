@@ -40,9 +40,16 @@ class UserRepositoryJpaAdapter(private val jpa: SpringDataUserRepository) : User
 
     override fun findById(id: UUID): Optional<User> = jpa.findById(id).map { toDomain(it) }
 
+    override fun findByEmail(email: String): Optional<User> = jpa.findByEmail(email).map { toDomain(it) }
+
     override fun existsByEmail(email: String) = jpa.existsByEmail(email)
 
     override fun existsByCpf(cpf: String) = jpa.existsByCpf(cpf)
+
+    override fun delete(user: User) {
+        val entity = jpa.findById(user.id).orElseThrow()
+        jpa.delete(entity)
+    }
 
     private fun toDomain(e: UserEntity) =
         User(

@@ -105,3 +105,7 @@ test-output/
 # Local development
 local/
 local.properties
+
+# Prometheus and Grafana data
+prometheus/data/
+grafana/data/

@@ -44,24 +44,64 @@ class AccountServiceMetrics(
             .description("Total number of account not found errors")
             .register(meterRegistry)
 
+    private val userUpdateCounter =
+        Counter.builder("account.user.update.total")
+            .description("Total number of user updates")
+            .register(meterRegistry)
+
+    private val userUpdateTimer =
+        Timer.builder("account.user.update.time")
+            .description("Time taken to update a user")
+            .register(meterRegistry)
+
+    private val accountUpdateCounter =
+        Counter.builder("account.update.total")
+            .description("Total number of account updates")
+            .register(meterRegistry)
+
+    private val accountUpdateTimer =
+        Timer.builder("account.update.time")
+            .description("Time taken to update an account")
+            .register(meterRegistry)
+
+    private val userDeletionCounter =
+        Counter.builder("account.user.deletion.total")
+            .description("Total number of user deletions")
+            .register(meterRegistry)
+
+    private val userDeletionTimer =
+        Timer.builder("account.user.deletion.time")
+            .description("Time taken to delete a user")
+            .register(meterRegistry)
+
+    private val accountDeletionCounter =
+        Counter.builder("account.deletion.total")
+            .description("Total number of account deletions")
+            .register(meterRegistry)
+
+    private val accountDeletionTimer =
+        Timer.builder("account.deletion.time")
+            .description("Time taken to delete an account")
+            .register(meterRegistry)
+
     fun recordUserRegistrationTime(timeNanos: Long) {
         userRegistrationTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
     }
 
-    fun recordUserLookupTime(timeNanos: Long) {
-        userLookupTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
+    fun incrementAccountCreation() {
+        accountCreationCounter.increment()
     }
 
     fun recordAccountCreationTime(timeNanos: Long) {
         accountCreationTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
     }
 
-    fun incrementUserRegistration() {
-        userRegistrationCounter.increment()
+    fun recordUserLookupTime(timeNanos: Long) {
+        userLookupTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
     }
 
-    fun incrementAccountCreation() {
-        accountCreationCounter.increment()
+    fun incrementUserRegistration() {
+        userRegistrationCounter.increment()
     }
 
     fun incrementUserNotFound() {
@@ -70,5 +110,37 @@ class AccountServiceMetrics(
 
     fun incrementAccountNotFound() {
         accountNotFoundCounter.increment()
+    }
+
+    fun incrementUserUpdate() {
+        userUpdateCounter.increment()
+    }
+
+    fun recordUserUpdateTime(timeNanos: Long) {
+        userUpdateTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
+    }
+
+    fun incrementAccountUpdate() {
+        accountUpdateCounter.increment()
+    }
+
+    fun recordAccountUpdateTime(timeNanos: Long) {
+        accountUpdateTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
+    }
+
+    fun incrementUserDeletion() {
+        userDeletionCounter.increment()
+    }
+
+    fun recordUserDeletionTime(timeNanos: Long) {
+        userDeletionTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
+    }
+
+    fun incrementAccountDeletion() {
+        accountDeletionCounter.increment()
+    }
+
+    fun recordAccountDeletionTime(timeNanos: Long) {
+        accountDeletionTimer.record(timeNanos, java.util.concurrent.TimeUnit.NANOSECONDS)
     }
 }

@@ -1,8 +1,10 @@
 package com.modubank.account.infrastructure.config
 
 import com.modubank.account.application.usecases.RegisterUser
+import com.modubank.account.domain.exception.AccountNotFoundException
 import com.modubank.account.domain.exception.DomainException
 import com.modubank.account.domain.exception.RequiredFieldMissingException
+import com.modubank.account.domain.exception.UserNotFoundException
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.validation.ConstraintViolationException
 import org.slf4j.LoggerFactory
@@ -147,5 +149,45 @@ class GlobalExceptionHandler {
         enrich(problem, request)
 
         return ResponseEntity.badRequest().body(problem)
+    }
+
+    @ExceptionHandler(AccountNotFoundException::class)
+    fun handleAccountNotFound(
+        ex: AccountNotFoundException,
+        request: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn(
+            "Account not found path={}, accountId={}",
+            request.requestURI,
+            ex.message,
+        )
+
+        val problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND)
+        problem.title = "Account not found"
+        problem.detail = ex.message
+
+        enrich(problem, request)
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
+    }
+
+    @ExceptionHandler(UserNotFoundException::class)
+    fun handleUserNotFound(
+        ex: UserNotFoundException,
+        request: HttpServletRequest,
+    ): ResponseEntity<ProblemDetail> {
+        log.warn(
+            "User not found path={}, userId={}",
+            request.requestURI,
+            ex.message,
+        )
+
+        val problem = ProblemDetail.forStatus(HttpStatus.NOT_FOUND)
+        problem.title = "User not found"
+        problem.detail = ex.message
+
+        enrich(problem, request)
+
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(problem)
     }
 }

@@ -25,11 +25,7 @@ class CreateAccount(
     private val log = LoggerFactory.getLogger(CreateAccount::class.java)
 
     fun execute(cmd: CreateAccountCommand): Account {
-        log.info(
-            "Starting account creation userId={}, currency={}",
-            cmd.userId,
-            cmd.currency,
-        )
+        log.info("Creating account for userId={}, currency={}", cmd.userId, cmd.currency)
 
         val supportedCurrency =
             SupportedCurrency.fromCode(cmd.currency)
@@ -49,11 +45,7 @@ class CreateAccount(
 
         val saved = accountRepository.save(account)
 
-        log.info(
-            "Account created successfully accountId={}, userId={}",
-            saved.id,
-            saved.userId,
-        )
+        log.info("Account created successfully accountId={}, userId={}", saved.id, cmd.userId)
 
         return saved
     }
