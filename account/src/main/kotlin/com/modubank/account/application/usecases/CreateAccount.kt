@@ -3,7 +3,10 @@ package com.modubank.account.application.usecases
 import com.modubank.account.application.repositories.AccountRepository
 import com.modubank.account.application.repositories.UserRepository
 import com.modubank.account.domain.Account
+import com.modubank.account.domain.SupportedCurrency
 import com.modubank.account.domain.exception.DomainException
+import com.modubank.account.domain.exception.UnsupportedCurrencyException
+import com.modubank.account.infrastructure.config.AccountConfig
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.util.UUID
@@ -17,6 +20,7 @@ data class CreateAccountCommand(
 class CreateAccount(
     private val accountRepository: AccountRepository,
     private val userRepository: UserRepository,
+    private val accountConfig: AccountConfig,
 ) {
     private val log = LoggerFactory.getLogger(CreateAccount::class.java)
 
@@ -27,10 +31,9 @@ class CreateAccount(
             cmd.currency,
         )
 
-        if (cmd.currency.isBlank()) {
-            log.warn("Invalid currency userId={}", cmd.userId)
-            throw IllegalArgumentException("currency_must_not_be_blank")
-        }
+        val supportedCurrency =
+            SupportedCurrency.fromCode(cmd.currency)
+                ?: throw UnsupportedCurrencyException(cmd.currency)
 
         if (userRepository.findById(cmd.userId).isEmpty) {
             throw DomainException("user_not_found")
@@ -39,9 +42,9 @@ class CreateAccount(
         val account =
             Account(
                 userId = cmd.userId,
-                currency = cmd.currency,
-                branchCode = DEFAULT_BRANCH,
-                accountNumber = generateAccountNumber(cmd.userId),
+                currency = supportedCurrency.code,
+                branchCode = accountConfig.branchCode,
+                accountNumber = generateAccountNumber(cmd.userId, supportedCurrency),
             )
 
         val saved = accountRepository.save(account)
@@ -55,18 +58,22 @@ class CreateAccount(
         return saved
     }
 
-    private fun generateAccountNumber(userId: UUID): String {
-        val base =
-            userId
-                .toString()
-                .replace("-", "")
-                .takeLast(12)
-
-        val checksum = base.sumOf { it.code } % 9
-        return "$base-$checksum"
+    private fun generateAccountNumber(
+        userId: UUID,
+        currency: SupportedCurrency,
+    ): String {
+        val base = UUID.randomUUID().toString().replace("-", "").take(10)
+        val checkDigits = calculateIso7064Mod97(base)
+        return "$base$checkDigits"
     }
 
-    companion object {
-        private const val DEFAULT_BRANCH = "0001"
+    private fun calculateIso7064Mod97(input: String): String {
+        val numericInput = input.map { it.code - 48 }.toMutableList()
+        var remainder = 0
+        for (digit in numericInput) {
+            remainder = (remainder * 10 + digit) % 97
+        }
+        val checkDigits = 98 - remainder
+        return checkDigits.toString().padStart(2, '0')
     }
 }

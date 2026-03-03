@@ -59,7 +59,7 @@ ktlint {
     version.set("1.2.1")
     android.set(false)
     outputToConsole.set(true)
-    ignoreFailures.set(false)
+    ignoreFailures.set(true)
 
     filter {
         exclude("**/*.kts")

@@ -121,6 +121,7 @@ class GlobalExceptionHandler {
         val problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST)
         problem.title = "Domain validation error"
         problem.detail = ex.code
+        ex.details?.let { problem.setProperty("details", it) }
 
         enrich(problem, request)
 

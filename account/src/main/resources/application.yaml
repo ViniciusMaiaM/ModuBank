@@ -17,6 +17,10 @@ spring:
     open-in-view: false
   flyway:
     enabled: true
+
+account:
+  branch-code: "0001"
+
 management:
   endpoints:
     web:

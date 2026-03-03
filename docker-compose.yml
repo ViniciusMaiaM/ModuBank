@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${DB_NAME:-modubank}
+      POSTGRES_USER: ${DB_USER:-modubank}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-modubank}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-modubank}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  account:
+    build:
+      context: ./account
+      dockerfile: Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-modubank}
+      - DB_USER=${DB_USER:-modubank}
+      - DB_PASSWORD=${DB_PASSWORD:-modubank}
+      - SPRING_PROFILES_ACTIVE=default
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: on-failure
+
+volumes:
+  pgdata:
