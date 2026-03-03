@@ -10,9 +10,13 @@ class IntegrationTestConfig {
         @JvmStatic
         @DynamicPropertySource
         fun registerProperties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url") { "jdbc:postgresql://localhost:5432/modubank_test" }
-            registry.add("spring.datasource.username") { "modubank" }
-            registry.add("spring.datasource.password") { "modubank" }
+            val dbUrl = System.getProperty("DB_URL") ?: "jdbc:postgresql://localhost:5432/modubank_test"
+            val dbUser = System.getProperty("DB_USER") ?: "modubank"
+            val dbPassword = System.getProperty("DB_PASSWORD") ?: "modubank"
+
+            registry.add("spring.datasource.url") { dbUrl }
+            registry.add("spring.datasource.username") { dbUser }
+            registry.add("spring.datasource.password") { dbPassword }
 
             registry.add("spring.jpa.hibernate.ddl-auto") { "validate" }
             registry.add("spring.flyway.enabled") { true }

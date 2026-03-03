@@ -39,18 +39,15 @@ jobs:
       - name: Build with Gradle
         run: cd account && ./gradlew build -x test --no-daemon
 
-      - name: Install PostgreSQL client
-        run: sudo apt-get update && sudo apt-get install -y postgresql-client
-
-      - name: Wait for PostgreSQL
-        run: sleep 10
-
-      - name: Create test database
-        run: |
-          PGPASSWORD=modubank psql -h localhost -U modubank -c "CREATE DATABASE modubank_test;" || true
+      - name: Wait for PostgreSQL to be ready
+        uses: nick Fields/retry@v4
+        with:
+          timeout_seconds: 60
+          max_attempts: 10
+          command: PGPASSWORD=modubank pg_isready -h localhost -p 5432 -U modubank
 
       - name: Run tests
-        run: cd account && ./gradlew test --no-daemon
+        run: cd account && ./gradlew test -DDB_URL=jdbc:postgresql://localhost:5432/modubank_test -DDB_USER=modubank -DDB_PASSWORD=modubank --no-daemon
 
       - name: Run ktlint
         run: cd account && ./gradlew ktlintCheck --no-daemon

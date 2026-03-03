@@ -1,0 +1,145 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: modubank-postgres-dev
+    environment:
+      POSTGRES_DB: ${DB_NAME:-modubank}
+      POSTGRES_USER: ${DB_USER:-modubank}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-modubank}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+      - ./scripts/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-modubank}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - modubank-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: modubank-redis-dev
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - redis_data_dev:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - modubank-network
+
+  # Account Service
+  account:
+    build:
+      context: ./account
+      dockerfile: Dockerfile
+      target: development
+    container_name: modubank-account-dev
+    ports:
+      - "${ACCOUNT_PORT:-8081}:8081"
+    environment:
+      - DB_URL=jdbc:postgresql://postgres:5432/${DB_NAME:-modubank}
+      - DB_USER=${DB_USER:-modubank}
+      - DB_PASSWORD=${DB_PASSWORD:-modubank}
+      - REDIS_URL=redis://redis:6379
+      - SPRING_PROFILES_ACTIVE=development
+      - LOG_LEVEL=${LOG_LEVEL:-DEBUG}
+      - MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE=*
+      - MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS=always
+    volumes:
+      - ./account:/app
+      - /app/build
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    networks:
+      - modubank-network
+    restart: unless-stopped
+
+  # Prometheus for metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: modubank-prometheus-dev
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data_dev:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=200h'
+      - '--web.enable-lifecycle'
+    networks:
+      - modubank-network
+    profiles:
+      - monitoring
+
+  # Grafana for dashboards
+  grafana:
+    image: grafana/grafana:latest
+    container_name: modubank-grafana-dev
+    ports:
+      - "${GRAFANA_PORT:-3000}:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana_data_dev:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./monitoring/grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - modubank-network
+    profiles:
+      - monitoring
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: modubank-jaeger-dev
+    ports:
+      - "${JAEGER_UI_PORT:-16686}:16686"
+      - "${JAEGER_COLLECTOR_PORT:-14268}:14268"
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    networks:
+      - modubank-network
+    profiles:
+      - tracing
+
+volumes:
+  postgres_data_dev:
+    driver: local
+  redis_data_dev:
+    driver: local
+  prometheus_data_dev:
+    driver: local
+  grafana_data_dev:
+    driver: local
+
+networks:
+  modubank-network:
+    driver: bridge
